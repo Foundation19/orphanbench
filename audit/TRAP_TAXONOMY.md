@@ -1,158 +1,56 @@
-# Full-text approval audit — all 2,426 rows
+# Item validity filter — trap kinds
 
-2026-08-01. All 2,426 rows read. The per-row read outcome and the quoted basis text are released
-as a six-month deliverable. The instruction used for the read is in
-[`audit/READING_PROMPT.md`](READING_PROMPT.md).
+A disease–drug pair can carry a clinical record without the drug ever having been given as
+treatment of that disease. Joining identifiers cannot tell the difference; reading the record can.
+This catalogue lists the kinds found so far. It is used before adjudication
+([`docs/ITEM_CONSTRUCTION.md`](../docs/ITEM_CONSTRUCTION.md) §6) and during it
+([`docs/ADJUDICATION.md`](../docs/ADJUDICATION.md) §4).
 
-Judged by an **agent reading the source text directly**, not by a code join.
+The list is not exhaustive. New kinds kept appearing in the last batches read when it was
+compiled; a reader who meets one not listed here records it as `NEW TYPE:` in `notes`, and the
+catalogue is extended with the next version. Finding a new kind is a normal result.
 
----
+## A. Right disease, but the drug's role is not treatment
 
-## 1. How far the drug went in this disease
+| Kind | What it looks like | Example |
+|---|---|---|
+| Conditioning before transplant or gene therapy; graft immunosuppression; GvHD prophylaxis | Alkylating agents and immunosuppressants attached to lysosomal, haematological or immunodeficiency diseases | One bone-marrow-transplant protocol produced busulfan and cyclophosphamide records across six different lysosomal diseases. The transplant is the treatment; the drugs are tools |
+| Probe substrate in a drug-interaction study | A pharmacokinetic probe (midazolam for CYP3A4, itraconazole as inhibitor, celecoxib for CYP2C9) or a pharmacodynamic probe tagged with the sponsor's disease | One interaction study in healthy volunteers turned seven probe drugs into sickle-cell "indication" records |
+| Premedication and toxicity rescue | Antipyretic or antihistamine before infusion; leucovorin with pyrimethamine; mesna with cyclophosphamide; seizure cover during conditioning | No endpoint of its own |
+| Placebo or comparator arm | Sodium chloride and similar recorded as an indication | |
+| Healthy volunteers under a disease tag | A phase-1 study registered under the intended indication while enrolling only healthy adults | Check the enrolled population, not the condition field |
+| Given to every arm | A background drug both arms receive | A skin cleanser recorded for cystic fibrosis because both arms of an inhaled-antibiotic trial used it; the same trial supports a genuine record for the study drug |
+| Imaging tracer, contrast agent, diagnostic reagent | | |
 
-| | Rows | Share |
-|---|---:|---:|
-| Approved | 240 | 9.89% |
-| Trial | 566 | 23.33% |
-| Individual use reports | 23 | 0.95% |
-| Preclinical | 2 | 0.08% |
-| Not treatment | 159 | 6.55% |
-| No record found | 1,436 | 59.19% |
-| **Total** | **2,426** | 100% |
+## B. The disease attachment itself is wrong
 
-Actually given to patients: 829 rows (34.2%).
+| Kind | What it looks like | Example |
+|---|---|---|
+| Identifier mis-expansion | A trial-condition string expanded to an unrelated rare disease | The string `"Fed"` (fed-state bioequivalence) expanded to *Fish-Eye Disease*, producing phase-1 records for antihistamines and antipsychotics |
+| Acquired phenocopy under the inherited name | An autoantibody disease filed under the inherited gene's term | Acquired haemophilia A under `hemophilia A` |
+| Subtype misattribution | A parent-disease record standing for a subtype the authorisation does not cover | A phase-4 flag on one Gaucher subtype where the authorisation covers another |
 
-## 2. Source of the evidence
+## C. The drug was not in the trial, or a different molecule was
 
-| | Rows | Share |
-|---|---:|---:|
-| Not found | 1,379 | 56.84% |
-| ChEMBL | 676 | 27.86% |
-| ClinicalTrials.gov | 255 | 10.51% |
-| Open Targets | 83 | 3.42% |
-| Reader's own knowledge | 26 | 1.07% |
-| EMA | 7 | 0.29% |
+| Kind | Example |
+|---|---|
+| Cited trial does not contain the drug | A cystic fibrosis record citing a trial whose only interventions were glutathione and saline |
+| Precursor or analogue was studied | Niacinamide records citing nicotinamide-riboside trials |
+| Class record standing in for one molecule | A cannabinoid-class entry whose Huntington record cites a THC + cannabidiol study in which that molecule was never given |
+| Aggregator error | A drug-indication table recording an approval that exists nowhere else — treat a single-source claim with suspicion regardless of the source |
 
-## 3. Checkable identifiers (NCT / EU number)
+## D. Trial withdrawn after enrolling zero participants
 
-| Read outcome | Has ref | No ref |
-|---|---:|---:|
-| Approved | 209 | **31** |
-| Trial | 566 | 0 |
-| Individual use | 8 | **15** |
-| Preclinical | 2 | 0 |
-| Not treatment | 159 | 0 |
-| Not found | 325 | 1,111 |
+The record exists; nobody received the drug.
 
-Approved 31 + individual use 15 = **46 rows have no identifier to trace back to.**
-The 325 "not found" rows that do carry a ref cite it **to show absence** — as in "this NCT is not
-a trial of this drug".
+## E. One label producing several indications
 
-## 4. Does the disease carry a record for any drug at all
+A single product label can generate separate records for each condition it mentions, only one of
+which is authorised. Read the authorisation, not the mention count.
 
-| Read outcome | Has record | No record |
-|---|---:|---:|
-| Approved | 209 | 31 |
-| Trial | 541 | 25 |
-| Individual use | 6 | 17 |
-| Preclinical | 2 | 0 |
-| Not treatment | 150 | 9 |
-| Not found | **358** | **1,078** |
-| Total | 1,266 | 1,160 |
+## Source-side notes that matter for every kind
 
-`Not found` splits in two — **358 rows** where the disease has other drugs but not this one
-(comparable), and **1,078 rows** where the disease itself is absent from the sources
-(not comparable).
-
-## 5. How far the drug went in other diseases
-
-| Read outcome | Approved elsewhere | Trial elsewhere | None |
-|---|---:|---:|---:|
-| Approved | 178 | 45 | 17 |
-| Trial | 413 | 128 | 25 |
-| Individual use | 21 | 2 | 0 |
-| Preclinical | 0 | 0 | 2 |
-| Not treatment | 139 | 16 | 4 |
-| Not found | **1,242** | 176 | 18 |
-
-Of the 1,436 "not found" rows, **1,242 are drugs already approved in some other disease** — which
-is what a repurposing candidate should look like.
-
-## 6. EMA orphan designation
-
-| | Rows | Share |
-|---|---:|---:|
-| None | 1,589 | 65.50% |
-| Designated | 586 | 24.15% |
-| Designation withdrawn | 156 | 6.43% |
-| Expired | 94 | 3.87% |
-| Refused | 1 | 0.04% |
-
-**Withdrawn and expired do not mean development stopped.** Betaine, trientine, lumacaftor,
-levofloxacin, miglustat and belzutifan all withdrew the designation while keeping a live marketing
-authorisation — sponsors commonly drop orphan status after approval.
-
----
-
-## 7. The 159 `not treatment` rows — every one read
-
-| Kind | Rows |
-|---|---:|
-| **A. Right disease, but the drug's role is not treatment** | **105** |
-| ├ Conditioning before transplant or gene therapy / immunosuppression / GvHD prophylaxis | 55 |
-| ├ Probe substrate in a drug-interaction study (mostly healthy volunteers) | 18 |
-| ├ Premedication before infusion (antipyretic, antihistamine, toxicity rescue) | 9 |
-| ├ Placebo or comparator arm | 7 |
-| ├ Healthy volunteers only | 4 |
-| ├ Imaging tracer or contrast agent | 4 |
-| └ Diagnostic reagent 2 · background drug in all arms 2 · other 4 | 8 |
-| **B. The disease attachment itself is wrong** | **21** |
-| ├ `"Fed"` (fed state) → Fish-Eye Disease mis-expansion | 18 |
-| └ Fructose intolerance mis-expansion 1 · acquired haemophilia 1 · subtype misattribution 1 | 3 |
-| **C. The drug was not in the trial, or a different molecule was** | **7** |
-| **D. Trial withdrawn after enrolling zero participants** | **4** |
-| **E. A parent-disease record belonging to a different subtype** | **22** |
-| **Total** | **159** |
-
-One trial generating many rows is a clear pattern. `NCT00176904` (University of Minnesota bone
-marrow transplant) alone produced 6 busulfan rows + 6 cyclophosphamide rows = **12 rows**.
-`NCT05981365` (Pfizer voxelotor interaction study, 44 healthy volunteers) turned **7 probe drugs**
-into sickle cell disease records.
-
-### Current four-class verdicts on those 159 `not_treatment` rows
-
-| Verdict | Rows |
-|---|---:|
-| mismatch | 94 |
-| symptomatic | 38 |
-| downstream_match | 21 |
-| causal_match | 6 |
-
-**65 rows are not treatment yet are not labelled mismatch.** They fall under the Step 0
-procedural-drug rule in rubric v9.2, which has not been applied to them yet.
-
----
-
-## 8. Composition by source
-
-Rows carry the source they were drawn from. One source dominates the failure mode above: the
-ChEMBL-clinical-record line has evidence at 75.8%, and in exchange **137 of the 159
-`not_treatment` rows are concentrated there** — because "a drug that reached a clinical phase in
-ChEMBL" was taken as a positive as-is. That table records only that the drug appeared in a
-trial; **it does not record what the drug was there to do.**
-
-Sources built as wrong answers for evaluation carry almost no clinical record. That is by
-design, not a defect. Per-row source labels ship with the release.
-
-
-
----
-
-## 9. Rows needing repair — 121 after removing overlap
-
-| What | Rows | Why |
-|---|---:|---|
-| Not treatment, yet the verdict is not mismatch | 65 | Procedural-drug rule not applied |
-| Approved or individual-use rows with no identifier to trace | 46 | Cannot be verified |
-| Reader's own knowledge is the only basis | 26 | No source. 12 of them have an empty `basis` too |
-| **Total after removing overlap** | **121** | |
+- Synonym and trade-name fields in aggregated drug indexes are contaminated: a synonym search returns analogues. Identify by the primary name field.
+- Records may sit on a salt or on the parent molecule. Follow the parent link both ways before concluding a drug has no record.
+- A drug's approval can appear in a description field that the indication tables lack, and the same field can carry claims that are wrong. Read it; corroborate it.
+- Orphan-designation *withdrawn* or *expired* does not mean development stopped.
