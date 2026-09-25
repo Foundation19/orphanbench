@@ -109,10 +109,8 @@
               "allelic_disease",
               "gene_level_genotype_phenotype",
               "reported_disease",
-              "evidence_type",
               "variant_effect",
               "zygosity",
-              "variant_severity",
               "therapy_eligibility"
             ]
           },
